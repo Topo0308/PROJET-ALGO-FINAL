@@ -125,7 +125,7 @@ Python 3.11.5
 
 **Avec le bouton "Run"**
 
-1. Ouvrez le fichier `main.py`
+1. Ouvrez le fichier `gestion_notes.py`
 2. Cliquez sur le bouton **▶️ Run** en haut à droite
 3. Ou utilisez le raccourci : `Ctrl + F5` (Windows/Linux) ou `Cmd + F5` (Mac)
 
@@ -184,7 +184,7 @@ Matricule de l'étudiant (ou 'q' pour terminer) : q
 
 ### 🔍 Localisation du fichier
 
-Une fois le programme terminé, le fichier **`rapport_notes.txt`** est automatiquement créé dans le **même dossier** que votre fichier `main.py`.
+Une fois le programme terminé, le fichier **`rapport_notes.txt`** est automatiquement créé dans le **même dossier** que votre fichier `gestion_notes.py`.
 
 ---
 
