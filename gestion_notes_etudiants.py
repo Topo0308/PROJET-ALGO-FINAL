@@ -6,8 +6,7 @@ def saisir_matricule():
         if matricule.isalnum():
             return matricule.upper()  # normalisation : tout en majuscules
         else:
-            print("  Matricule invalide ! Utilisez uniquement des lettres et/ou chiffres (for example : AB123).")
-
+            print("  Matricule invalide ! Utilisez uniquement des lettres et/ou chiffres (ex : AB123).")
 
 def saisir_nom():
     """Saisie sécurisée d'un nom (lettres uniquement, espaces autorisés)."""
@@ -18,7 +17,6 @@ def saisir_nom():
             return nom.title()  # normalisation : première lettre en majuscule
         else:
             print("  Nom invalide ! Utilisez uniquement des lettres.")
-
 
 def saisir_note():
     """Saisie sécurisée d'une note sur 20 (float entre 0 et 20)."""
@@ -31,7 +29,6 @@ def saisir_note():
             print("  La note doit être comprise entre 0 et 20.")
         except ValueError:
             print("  Entrez un nombre valide pour la note.")
-
 
 def afficher_etudiants(etudiants: dict):
     """Affiche tous les étudiants sous forme de tableau aligné."""
@@ -48,7 +45,6 @@ def afficher_etudiants(etudiants: dict):
         print(f"{matricule:<15}{nom:<25}{note:>6.2f}")
     print("-" * 46)
 
-
 def sauvegarder_dans_fichier(etudiants: dict, nom_fichier="notes.txt"):
     """Sauvegarde les étudiants dans un fichier texte aligné."""
     with open(nom_fichier, "w", encoding="utf-8") as f:
@@ -60,15 +56,71 @@ def sauvegarder_dans_fichier(etudiants: dict, nom_fichier="notes.txt"):
             f.write(f"{matricule:<15}{nom:<25}{note:>6.2f}\n")
 
     print(f"\nDonnées sauvegardées dans le fichier : {nom_fichier}")
+# ---------- Statistiques de classe ---------- #
+def calculer_statistiques_classe(etudiants: dict):
+    """Calcule les statistiques globales de la classe à partir du dictionnaire etudiants."""
+    if not etudiants:
+        return {
+            "nb_etudiants": 0,
+            "moyenne_classe": 0.0,
+            "meilleure_note": None,
+            "pire_note": None,
+            "meilleur_etudiant": None,
+            "pire_etudiant": None,
+        }
+
+    notes = []
+    for matricule, infos in etudiants.items():
+        notes.append((matricule, infos["nom"], infos["note"]))
+
+    nb = len(notes)
+    somme = sum(n[2] for n in notes)
+    moyenne = round(somme / nb, 2)
+
+    # Meilleure note
+    meilleur = max(notes, key=lambda x: x[2])  # x = (matricule, nom, note)
+    # Pire note
+    pire = min(notes, key=lambda x: x[2])
+
+    return {
+        "nb_etudiants": nb,
+        "moyenne_classe": moyenne,
+        "meilleure_note": meilleur[2],
+        "pire_note": pire[2],
+        "meilleur_etudiant": {"matricule": meilleur[0], "nom": meilleur[1]},
+        "pire_etudiant": {"matricule": pire[0], "nom": pire[1]},
+    }
+
+def afficher_statistiques_classe(etudiants: dict):
+    """Affiche les statistiques globales de la classe."""
+    stats = calculer_statistiques_classe(etudiants)
+
+    if stats["nb_etudiants"] == 0:
+        print("\nAucun étudiant enregistré, statistiques impossibles.")
+        return
+
+    print("\n===== Statistiques de la classe =====")
+    print(f"Nombre d'étudiants : {stats['nb_etudiants']}")
+    print(f"Moyenne de la classe : {stats['moyenne_classe']:.2f} / 20")
+
+    print(f"\nMeilleure note : {stats['meilleure_note']:.2f} / 20")
+    print(f"  Étudiant : {stats['meilleur_etudiant']['matricule']} - {stats['meilleur_etudiant']['nom']}")
+
+    print(f"\nPire note : {stats['pire_note']:.2f} / 20")
+    print(f"  Étudiant : {stats['pire_etudiant']['matricule']} - {stats['pire_etudiant']['nom']}")
+    print("=====================================")
 # ---------- Fonctions liées au menu ---------- #
 def ajouter_etudiant(etudiants: dict):
-    """Ajoute un étudiant si le matricule n'existe pas déjà."""
+    """Ajoute un étudiant en garantissant un matricule unique (pas d'écrasement)."""
     print("\n=== Ajout d'un nouvel étudiant ===")
-    matricule = saisir_matricule()
 
-    if matricule in etudiants:
-        print(" Ce matricule existe déjà ! Impossible d'ajouter un doublon.")
-        return
+    # On boucle tant qu'on n'a pas un matricule NON utilisé
+    while True:
+        matricule = saisir_matricule()
+        if matricule in etudiants:
+            print("  Ce matricule existe déjà ! Veuillez en saisir un autre.")
+        else:
+            break
 
     nom = saisir_nom()
     note = saisir_note()
@@ -100,7 +152,7 @@ def modifier_etudiant(etudiants: dict):
         nouvelle_note = saisir_note()
         etu["note"] = nouvelle_note
 
-    print(" Étudiant modifié avec succès.")
+    print("  Étudiant modifié avec succès.")
 
 
 def supprimer_etudiant(etudiants: dict):
@@ -113,12 +165,12 @@ def supprimer_etudiant(etudiants: dict):
         return
 
     etu = etudiants[matricule]
-    confirm = input(f" Confirmer la suppression de {etu['nom']} (o/n) ? ").lower().strip()
+    confirm = input(f"  Confirmer la suppression de {etu['nom']} (o/n) ? ").lower().strip()
     if confirm == "o":
         del etudiants[matricule]
-        print(" Étudiant supprimé. ")
+        print("  Étudiant supprimé.")
     else:
-        print(" Suppression annulée. ")
+        print("  Suppression annulée.")
 
 
 def afficher_menu():
@@ -128,7 +180,8 @@ def afficher_menu():
     print("2 - Afficher tous les étudiants")
     print("3 - Modifier un étudiant")
     print("4 - Supprimer un étudiant")
-    print("5 - Sauvegarder et quitter")
+    print("5 - Afficher les statistiques de la classe")
+    print("6 - Sauvegarder et quitter")
     print("==================================")
 
 
@@ -150,6 +203,8 @@ def main():
         elif choix == "4":
             supprimer_etudiant(etudiants)
         elif choix == "5":
+            afficher_statistiques_classe(etudiants)
+        elif choix == "6":
             sauvegarder_dans_fichier(etudiants)
             print("Au revoir !")
             break
@@ -159,11 +214,14 @@ def main():
 
 if __name__ == "__main__":
     main()
-############################################################
+# -*- coding: utf-8 -*-
+
+#############################################
 #  Gestionnaire de notes d'étudiants
-#  - Menu (ajouter, afficher, modifier, supprimer, quitter)
-#  - Matricules uniques (pas de doublons)
+#  - Menu (ajouter, afficher, modifier, supprimer, stats, sauvegarder/quitter)
+#  - Matricules uniques (pas de doublons, on redemande tant que nécessaire)
 #  - Nom et matricule normalisés
 #  - Notes normalisées (0 à 20, arrondies à 2 décimales)
 #  - Sauvegarde dans notes.txt (tableau aligné)
-############################################################
+#  - Statistiques de classe : moyenne, meilleure, pire note
+#############################################
